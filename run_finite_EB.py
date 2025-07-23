@@ -1,4 +1,4 @@
-from MEK_finite_EB import * 
+from MEK_finite import * 
 import math
 
 import numpy as np
@@ -6,6 +6,36 @@ from numpy.linalg import eig
 
 #packages for plotting
 import matplotlib.pyplot as plt
+
+"""
+When simulating EB, it is recommended to modify self.constructStateList()
+Use:
+def constructStateList(self) -> list:
+    self.allow = []
+    if self.max_electrons == None and self.min_electrons == None:
+        self.max_electrons = sum([site for site in self.siteCapacity])
+        self.min_electrons = 0
+    if self.max_electrons != None and self.min_electrons == None:
+        for i in range(self.num_state):
+            if sum(self.idx2state(i)) <= self.max_electrons:
+                # print(self.idx2state(i))
+                self.allow.append(i)
+    if self.max_electrons == None and self.min_electrons != None:
+        for i in range(self.num_state):
+            if sum(self.idx2state(i)) >= self.min_electrons:
+                # print(self.idx2state(i))
+                self.allow.append(i)
+    if self.max_electrons != None and self.min_electrons != None:
+        for i in range(self.num_state):
+            # if sum(self.idx2state(i)) <= self.max_electrons and sum(self.idx2state(i)) >= self.min_electrons:
+            if sum(self.idx2state(i)) <= self.max_electrons and sum(self.idx2state(i)) >= self.min_electrons and (self.idx2state(i))[0] % 2 == 0:
+                # print(self.idx2state(i))
+                self.allow.append(i)
+    self.adj_num_state = len(self.allow)
+******* The key is line 31 ********
+It only allows microstates whose redox state at DR is an even number. This reduces the total number of microstates significantly.
+This restriction makes sense when you are assuming two-electron concerted transfer between DR and D.
+"""
 
 N = 100
 ztime = 10**(-12)
