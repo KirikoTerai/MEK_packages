@@ -1,4 +1,4 @@
-from MEK_KT_Energy_subset import * 
+from MEK_finite import * 
 import math
 
 import numpy as np
