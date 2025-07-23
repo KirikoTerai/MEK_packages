@@ -153,10 +153,6 @@ class Network():
         self.reservoirInfo[self.num_reservoir] = [name, cofactor, redox, num_electron, deltaG, rate]
         self.num_reservoir += 1
 
-    def set_Max_Electrons(self, max_electrons: int):
-            self.max_electrons = max_electrons
-
-
     def evolve(self, t: float, pop_init: np.array) -> np.array:
         """
         Evolve the population vector with a timestep of t
