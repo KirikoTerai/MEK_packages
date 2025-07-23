@@ -16,55 +16,56 @@ popC_time = []
 flux_R1_time = []
 flux_R2_time = []
 
+net = Network()
+
+# Define your cofactor
+A = Cofactor("A", [-0.1])   # Cofactor(name of cofactor, List of reduction potentials in eV)
+B = Cofactor("B", [0])  # [1st reduction potential, 2nd reduction potential, ...]
+C = Cofactor("C", [-0.2])
+
+# Add your defined cofactors
+net.addCofactor(A)
+net.addCofactor(B)
+net.addCofactor(C)
+
+# Define the physical connections
+net.addConnection(A, B, 10)
+net.addConnection(B, C, 10)   
+
+# Add infinite reservoirs
+"""
+net.addReservoir(name, cofactor, redox_state, num_electron, deltaG, reservoir_rate)
+name -- name of reservoir
+cofactor -- cofactor connected to reservoir
+redox_state -- redox state of the cofactor when it interacts with the reservoir
+num_electron -- number of electrons that move when the cofactor interacts with the reservoir
+deltaG -- deltaG for electron transfer from cofactor -> reservoir
+reservoir_rate -- electron transfer rate from cofactor -> reservoir
+"""
+net.addReservoir("R1", A, 1, 1, 0.1, reservoir_rate)
+net.addReservoir("R2", C, 1, 1, -0.1, reservoir_rate)
+
+# Function to make all the accessible microstates
+net.constructStateList()
+
+net.constructAdjacencyMatrix()
+# The dimension of the K matrix = total number of microstates = net.adj_num_state
+# K[j][i]: rate constant from microstate i -> j
+net.constructRateMatrix()
+
+for i in range(net.adj_num_state):
+    # net.idx2state: maps the idx to the microstate (list)
+    # net.state2idx: maps the microstate (list) to idx
+    print(net.idx2state(i), i)
+
+# Solve the master eq
+# Initial condition of the microstate population
+pop_MEK_init = np.zeros(net.num_state)
+pop_MEK_init[0] = 1     # System initiates with [0,0,0]
+
 for t in time:
-    net = Network()
-
-    # Define your cofactor
-    A = Cofactor("A", [-0.1])   # Cofactor(name of cofactor, List of reduction potentials in eV)
-    B = Cofactor("B", [0])  # [1st reduction potential, 2nd reduction potential, ...]
-    C = Cofactor("C", [-0.2])
-
-    # Add your defined cofactors
-    net.addCofactor(A)
-    net.addCofactor(B)
-    net.addCofactor(C)
-
-    # Define the physical connections
-    net.addConnection(A, B, 10)
-    net.addConnection(B, C, 10)   
-
-    # Add infinite reservoirs
-    """
-    net.addReservoir(name, cofactor, redox_state, num_electron, deltaG, reservoir_rate)
-    name -- name of reservoir
-    cofactor -- cofactor connected to reservoir
-    redox_state -- redox state of the cofactor when it interacts with the reservoir
-    num_electron -- number of electrons that move when the cofactor interacts with the reservoir
-    deltaG -- deltaG for electron transfer from cofactor -> reservoir
-    reservoir_rate -- electron transfer rate from cofactor -> reservoir
-    """
-    net.addReservoir("R1", A, 1, 1, 0.1, reservoir_rate)
-    net.addReservoir("R2", C, 1, 1, -0.1, reservoir_rate)
-
-    # Function to make all the accessible microstates
-    net.constructStateList()
-
-    net.constructAdjacencyMatrix()
-    # The dimension of the K matrix = total number of microstates = net.adj_num_state
-    # K[j][i]: rate constant from microstate i -> j
-    net.constructRateMatrix()
-
-    for i in range(net.adj_num_state):
-        # net.idx2state: maps the idx to the microstate (list)
-        # net.state2idx: maps the microstate (list) to idx
-        print(net.idx2state(i), i)
-
-    # Solve the master eq
-    # Initial condition of the microstate population
-    pop_MEK_init = np.zeros(net.num_state)
-    pop_MEK_init[0] = 1     # System initiates with [0,0,0]
-
     pop_MEK = net.evolve(t, pop_MEK_init)
+    print(pop_MEK)
     
     # Population at each cofactor
     popA = net.getExptvalue(pop_MEK, A)
